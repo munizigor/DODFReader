@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import requests
 from local_utils import *
 
 def lambda_handler(event, context):
@@ -29,7 +30,6 @@ def lambda_handler(event, context):
                 # Configura os parâmetros da requisição
                 data = {"chat_id": CHAT_ID}
                 files = {"document": document}
-                
                 # Faz a requisição à API do Telegram
                 response = requests.post(telegram_url, data=data, files=files)
                 response.raise_for_status()
