@@ -28,7 +28,8 @@ def lambda_handler(event, context):
         for _, path in dodf_files.items():
             with open(path, 'rb') as document:
                 # Configura os parâmetros da requisição
-                data = {"chat_id": CHAT_ID}
+                data = {"chat_id": CHAT_ID, 
+                        "caption": "Bom dia. Segue resumo do DODF de hoje."}
                 files = {"document": document}
                 # Faz a requisição à API do Telegram
                 response = requests.post(telegram_url, data=data, files=files)

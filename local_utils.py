@@ -1,21 +1,35 @@
 import requests
 import json
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 from bs4 import BeautifulSoup
 import unicodedata
 
 ORGANIZATIONS = {
     "CBMDF": {
         "name": "CORPO DE BOMBEIROS MILITAR DO DISTRITO FEDERAL",
-        "tags": ["CBMDF", "QOBM", "QBMG", "BOMBEIRO", "BOMBEIRA", "00053-"]
+        "tags": ["CBMDF", "QOBM", "QBMG", "BOMBEIRO", "BOMBEIRA", "00053-", "MONICA DE MESQUITA MIRANDA"]
     },
     "DEFESA CIVIL": {
         "name": "SUBSECRETARIA DE DEFESA CIVIL",
-        "tags": ["DEFESA CIVIL", "SEGURANCA PUBLICA"]
+        "tags": ["DEFESA CIVIL", "SEGURANCA PUBLICA", "SANDRO GOMES SANTOS DA SILVA"]
     },
     "PMDF": {
         "name": "POLÍCIA MILITAR DO DISTRITO FEDERAL",
         "tags": ["PMDF", "QOPM", "QPPMC", "POLICIAL MILITAR", "POLICIA MILITAR"]
+    },
+    "PCDF": {
+        "name": "POLÍCIA CIVIL DO DISTRITO FEDERAL",
+        "tags": ["PCDF",
+                  "DELEGADO DE POLICIA", 
+                  "AGENTE DE POLICIA",
+                  "ESCRIVA DE POLICIA",
+                  "ESCRIVAO DE POLICIA",
+                  "PERITA CRIMINAL",
+                  "PERITO CRIMINAL",
+                  "LEGISTA",
+                  "AGENTE POLICIAL", 
+                  "SINDEPO", 
+                  "SINPOL"]
     },
     "SSP-DF": {
         "name": "SECRETARIA DE SEGURANÇA PÚBLICA",
@@ -23,10 +37,14 @@ ORGANIZATIONS = {
             "SOPI",
             "OPERACOES INTEGRADAS",
             "SEGURANCA PUBLICA",
-            "SSP",
+            "SSP ",
+            "SSP-",
+            "SSP/",
             "00050-",
             "SANDRO AVELAR",
             "SANDRO TORRES AVELAR",
+            "ALEXANDRE RABELO PATURY",
+            "BILMAR ANGELIS DE ALMEIDA FERREIRA",
             "CINTIA QUEIROZ DE CASTRO"
         ]
     }
@@ -49,79 +67,111 @@ HEADERS = {
             "Upgrade-Insecure-Requests": "1"
 }
 
+STYLESHEET = CSS(string="""
+                 
+     table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 6pt;
+    border: 1px solid #000;
+  }
+
+  th, td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+    page-break-inside: avoid;
+    overflow-wrap: break-word; /* ou word-wrap: break-word; */
+  }
+
+  @page {
+    size: A4;
+    font-size: 6pt;
+    @bottom-right {
+      content: counter(page) "/" counter(pages);
+    }
+    @bottom-center {
+      content: "@AutoClippingBot - Criado por Ten-Cel. Muniz - CBMDF";
+    }
+  }
+
+  .container {
+    padding-top: 40px;
+    column-count: 2;
+    column-gap: 20px;
+    overflow-wrap: break-word;
+    font-size: min(3vw, 6pt);
+  }
+
+  .organization {
+    color: red;
+    font-weight: bold;
+  }
+
+  p {
+    margin: 0;
+    font-size: 6pt;
+    -pdf-keep-with-next: true;
+  }
+
+  td p {
+    margin: 1px 0;
+  }
+
+  h1, h2, h3 {
+    text-align: center;
+    margin: 0;
+  }
+
+  h1 { font-size: 12pt; }
+  h2 { font-size: 10pt; }
+  h3 { font-size: 8pt; }
+
+  .footer_content {
+    padding-top: 20px;
+    font-size: 6pt;
+    text-align: center;
+  }
+""")
+
 DODF_HEAD = """
 <head>
   <meta charset="UTF-8">
   <style>
-    .container{
-      padding-top: 20px;
-      column-count: 2;
-      column-gap: 20px;
-    }
-    table, td, tr {
-      border: 1px solid black;
-      border-collapse: collapse;
-    }
-    table {
-      table-layout: fixed;
-      width: 100%;
-      word-wrap: break-word;
-      margin-bottom: 15px;
-      margin-top: 15px;
-    }
+
     
-    p {
-      margin: 0;
-      font-size: 6pt;
-      -pdf-keep-with-next: true;
-    }
-    td p {
-      margin: 1;
-      margin-top: 2;
-    }
-    h1, h2, h3 {
-      text-align:center;
-      margin: 0;
-    }
-    h1{font-size: 12pt;}
-    h2{font-size: 10pt;}
-    h3{font-size: 8pt;}
-    
-    .footer_content{
-      padding-top: 20px;
-      font-size: 6pt;
-      text-align:center;
-    }
-    }
   </style>
+
 </head>
 """
 
 def normalize_text(text):
     return ''.join(c for c in unicodedata.normalize('NFD', text) if not unicodedata.combining(c)).upper()
 
-format_paragraph = lambda paragraph, tags: f'<b style="color: red;>{paragraph}</b>' if any(normalize_text(tag) in normalize_text(paragraph) for tag in tags) else paragraph
+format_paragraph = lambda paragraph, tags: f'<span class="organization">{paragraph}</span>' if any(normalize_text(tag) in normalize_text(paragraph) for tag in tags) else paragraph
 
-# def documents_function(document, tags):
-#     document = next(iter(document.values()))
-#     paragraphs = document["texto"].split("<p>")
-#     formatted_paragraphs = [format_paragraph(p, tags) for p in paragraphs]
-#     formatted_text = "<p>".join(formatted_paragraphs)
-#     print(formatted_text)
-#     return f'<p style="text-align:center;"><b>{document["titulo"]}</b></p>{"" if document["preambulo"] is None else document["preambulo"]}{formatted_text}&nbsp;&nbsp;'
-    
+def insert_span(html_str, target_names, className):
+    soup = BeautifulSoup(html_str, 'html.parser')
+
+    for p in soup.find_all('p', text=lambda t: any(normalize_text(name) in normalize_text(t) for name in target_names)):
+        if p.parent.class_ != className:
+            span_tag = soup.new_tag('span', attrs={'class': className})
+            p.wrap(span_tag)
+
+    return str(soup)
 
 def get_dodf_title(organization, dodf_title):
   return f'''
   <div id="header_content">
     <h1>DODF {dodf_title}</h1>
-    <h2>{organization}</h2>
+    <span class="organization"><h2>{organization}</h2></span>
     <h3>PUBLICAÇÕES DE INTERESSE</h3>
   </div>
   '''
 def get_dodf_footer(dodf_url):
-  return f'''<div class="footer_content">Original disponível em 
-      <a href="{dodf_url}">{dodf_url}</a>
+  return f'''<div class="footer_content">
+    <p>Publicação original disponível em <a href="{dodf_url}">{dodf_url}</a></p>
   </div>'''
 
 
@@ -141,20 +191,19 @@ def extract_documents_with_tags(dodf_data, tags, dodf_title, dodf_footer):
         document = orgaos[orgao]["documentos"]
         documents_dict = {**documents_dict, **document}
     documents_params = documents_dict.values()
-    # parsed_documents = lambda document: f'<p style="text-align:center;"><b>{document["titulo"]}</b></p>{"" if document["preambulo"] is None else document["preambulo"]}{document["texto"]}&nbsp;&nbsp;' if any(normalize_text(item) in normalize_text(document["texto"]) for item in tags) else ""
-    # parsed_documents = documents_function(document, tags)
-    # print(document["texto"].split("<p>"))
-    parsed_documents = lambda document, tags: f'<p style="text-align:center;"><b>{document["titulo"]}</b></p>{"" if document["preambulo"] is None else document["preambulo"]}' + ''.join([format_paragraph(p, tags) for p in list(str(x) for x in BeautifulSoup(document["texto"]).find_all('p'))]) + '&nbsp;&nbsp;' if any(normalize_text(item) in normalize_text(document["texto"]) for item in tags) else ""
-    # documents = map(parsed_documents,documents_params)
+    parsed_documents = lambda document, tags: f'<p style="text-align:center;"><b>{document["titulo"]}</b></p>{"" if document["preambulo"] is None else document["preambulo"]}' + ''.join([x for x in document["texto"]]) + '&nbsp;&nbsp;' if any(normalize_text(item) in normalize_text(document["texto"]) for item in tags) else ""
     documents = map(lambda document: parsed_documents(document, tags), documents_params)
-    # print(parsed_documents)
     dodf_body = f'<body>{"".join([item for item in documents if item!=""])}</body>'
+    dodf_body = insert_span(dodf_body, tags, "organization")
     dodf_html = f'<html>{DODF_HEAD}{dodf_title}<div class="container">{dodf_body}</div>{dodf_footer}</html>'
     return dodf_html
 
 def generate_pdf_from_dict(data_dict, output_file):
     html_data = data_dict.encode("utf-8")
-    pdf = HTML(string=html_data).write_pdf()
+    pdf = HTML(string=html_data).write_pdf(stylesheets=[STYLESHEET])
 
     with open(output_file, "wb") as pdf_file:
         pdf_file.write(pdf)
+    
+    with open(output_file.replace(".pdf","-2.html"),"wb") as dodf:
+        dodf.write(html_data) 
