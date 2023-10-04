@@ -4,52 +4,8 @@ from weasyprint import HTML, CSS
 from bs4 import BeautifulSoup
 import unicodedata
 
-ORGANIZATIONS = {
-    "CBMDF": {
-        "name": "CORPO DE BOMBEIROS MILITAR DO DISTRITO FEDERAL",
-        "tags": ["CBMDF", "QOBM", "QBMG", "BOMBEIRO", "BOMBEIRA", "00053-", "MONICA DE MESQUITA MIRANDA"]
-    },
-    "DEFESA CIVIL": {
-        "name": "SUBSECRETARIA DE DEFESA CIVIL",
-        "tags": ["DEFESA CIVIL", "SEGURANCA PUBLICA", "SANDRO GOMES SANTOS DA SILVA"]
-    },
-    "PMDF": {
-        "name": "POLÍCIA MILITAR DO DISTRITO FEDERAL",
-        "tags": ["PMDF", "QOPM", "QPPMC", "POLICIAL MILITAR", "POLICIA MILITAR"]
-    },
-    "PCDF": {
-        "name": "POLÍCIA CIVIL DO DISTRITO FEDERAL",
-        "tags": ["PCDF",
-                  "DELEGADO DE POLICIA", 
-                  "AGENTE DE POLICIA",
-                  "ESCRIVA DE POLICIA",
-                  "ESCRIVAO DE POLICIA",
-                  "PERITA CRIMINAL",
-                  "PERITO CRIMINAL",
-                  "LEGISTA",
-                  "AGENTE POLICIAL", 
-                  "SINDEPO", 
-                  "SINPOL"]
-    },
-    "SSP-DF": {
-        "name": "SECRETARIA DE SEGURANÇA PÚBLICA",
-        "tags": [
-            "SOPI",
-            "OPERACOES INTEGRADAS",
-            "SEGURANCA PUBLICA",
-            "SSP ",
-            "SSP-",
-            "SSP/",
-            "00050-",
-            "SANDRO AVELAR",
-            "SANDRO TORRES AVELAR",
-            "ALEXANDRE RABELO PATURY",
-            "BILMAR ANGELIS DE ALMEIDA FERREIRA",
-            "CINTIA QUEIROZ DE CASTRO"
-        ]
-    }
-}
-
+with open('./organizations.json') as org_file:
+  ORGANIZATIONS_FILE = json.load(org_file)
 
 URL_DODF_DIA = "https://dodf.df.gov.br/index/jornal-json"
 
@@ -73,7 +29,7 @@ STYLESHEET = CSS(string="""
     table-layout: fixed;
     border-collapse: collapse;
     width: 100%;
-    font-size: 6pt;
+    font-size: 4pt;
     border: 1px solid #000;
   }
 
@@ -92,7 +48,7 @@ STYLESHEET = CSS(string="""
       content: counter(page) "/" counter(pages);
     }
     @bottom-center {
-      content: "@AutoClippingBot - Criado por Ten-Cel. Muniz - CBMDF";
+      content: "@AutoClipping - Criado por Ten-Cel. Muniz - CBMDF";
     }
   }
 
@@ -104,14 +60,15 @@ STYLESHEET = CSS(string="""
     font-size: min(3vw, 6pt);
   }
 
-  .organization {
+  .organization p{
     color: red;
     font-weight: bold;
   }
 
   p {
     margin: 0;
-    font-size: 6pt;
+    font-size: 7pt;
+    line-height: 1.2;
     -pdf-keep-with-next: true;
   }
 
@@ -147,7 +104,10 @@ DODF_HEAD = """
 """
 
 def normalize_text(text):
-    return ''.join(c for c in unicodedata.normalize('NFD', text) if not unicodedata.combining(c)).upper()
+    if text:
+      return ''.join(c for c in unicodedata.normalize('NFD', text) if not unicodedata.combining(c)).upper()
+    else:
+      return ""
 
 format_paragraph = lambda paragraph, tags: f'<span class="organization">{paragraph}</span>' if any(normalize_text(tag) in normalize_text(paragraph) for tag in tags) else paragraph
 
@@ -204,6 +164,3 @@ def generate_pdf_from_dict(data_dict, output_file):
 
     with open(output_file, "wb") as pdf_file:
         pdf_file.write(pdf)
-    
-    with open(output_file.replace(".pdf","-2.html"),"wb") as dodf:
-        dodf.write(html_data) 

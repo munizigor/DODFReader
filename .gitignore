@@ -6,3 +6,5 @@ secret.tfvars
 .terraform*
 terraform.tfstate*
 __pycache*/
+*.sh
+*.http

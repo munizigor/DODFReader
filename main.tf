@@ -17,53 +17,132 @@ provider "aws" {
   region = "sa-east-1" # Substitua pela região desejada
 }
 
-# Crie o repositório ECR para armazenar a imagem Docker
-resource "aws_ecr_repository" "my_ecr_repo" {
-  name = "my-lambda-container-repo" # Substitua pelo nome desejado para o repositório
+# Crie o repositório ECR
+# resource "aws_ecr_repository" "my_ecr_repo" {
+#   name = "get-dodf"  # Substitua pelo nome desejado para o repositório
+# }
+
+variable "ecr_address" {}
+variable "repository_name" {}
+variable "ecr_tag" {}
+variable "target_input" {}
+variable "bot_token" {}
+
+locals {
+  get_dodf_ecr_address = "${var.ecr_address}/${var.repository_name}:${var.ecr_tag}"
+  tag_name             = "${var.repository_name}:${var.ecr_tag}"
 }
 
-# Data source para recuperar informações da imagem Docker
-data "docker_image" "my_lambda_container" {
-  name = "python_bookworm:latest" # Substitua pelo nome da imagem Docker que você criou usando o Dockerfile
+# Defina a autenticação para o Docker push
+data "aws_ecr_authorization_token" "auth_token" {}
+
+# Configuração do provedor Docker
+provider "docker" {
+  registry_auth {
+    address = local.get_dodf_ecr_address
+    username = data.aws_ecr_authorization_token.auth_token.username
+    password = data.aws_ecr_authorization_token.auth_token.password
+  }
 }
 
-# Faça o push da imagem para o ECR
-resource "aws_ecr_image" "my_ecr_image" {
-  name         = aws_ecr_repository.my_ecr_repo.repository_url
-  image_tag    = "latest"
-  image_digest = data.docker_image.my_lambda_container.digest
+# Construa a imagem Docker (substitua pelos seus comandos)
+resource "null_resource" "build_docker_image" {
+  triggers = {
+    always_run = timestamp()
+  }
+
+  provisioner "local-exec" {
+    command = "docker build -t ${var.repository_name} ."
+    environment = {
+      DOCKER_BUILDKIT = "1"
+    }
+  }
+}
+
+# Faça o push da imagem Docker para o ECR
+resource "null_resource" "tag_docker_image" {
+  triggers = {
+    always_run = timestamp()
+  }
+
+  depends_on = [null_resource.build_docker_image]
+
+  provisioner "local-exec" {
+    command = "docker tag ${local.tag_name} ${local.get_dodf_ecr_address}"
+  }
+}
+
+# Faça o push da imagem Docker para o ECR
+resource "null_resource" "push_docker_image" {
+  triggers = {
+    always_run = timestamp()
+  }
+
+  depends_on = [null_resource.build_docker_image]
+
+  provisioner "local-exec" {
+    command = "docker push ${local.get_dodf_ecr_address}"
+  }
 }
 
 
-# Use a imagem URI do ECR para criar o Layer do Lambda
-resource "aws_lambda_layer_version" "my_lambda_layer" {
-  compatible_runtimes = ["python3.11"] # Substitua pela versão do Python desejada
-  description         = "My custom Lambda layer with Docker container"
-  source_code_hash    = filebase64sha256("./Dockerfile") # Substitua pelo caminho do Dockerfile
-  source_code_size    = file("./Dockerfile")             # Substitua pelo caminho do Dockerfile
+#Definição de role para Lambda
+resource "aws_iam_role" "lambda_role" {
+  name = "lambda_execution_role"
 
-  # Especifique a imagem URI do ECR no formato correto
-  source_code_url = "${aws_ecr_repository.my_ecr_repo.repository_url}@${data.docker_image.my_lambda_container.digest}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# Atualize a função do Lambda
+resource "aws_lambda_function" "updated_lambda" {
+  function_name           = "get-dodf"
+  role                    = aws_iam_role.lambda_role.arn
+  image_uri               = local.get_dodf_ecr_address
+  package_type            = "Image"
+  timeout                 = 300
+  memory_size             = 256
+ 
+  environment {
+    variables = {
+      bot_token      = var.bot_token,
+    }
+  }
 }
 
 
-# Crie a função do Lambda
-resource "aws_lambda_function" "my_lambda_function" {
-  function_name = "my-lambda-function"
-  handler       = "lambda_function.lambda_handler" # Substitua pelo nome do arquivo e da função Lambda
-  runtime       = "python3.11"
-  role          = aws_iam_role.lambda_exec.arn
+resource "aws_cloudwatch_event_rule" "lambda_event_rule" {
+  name        = "6h30m_WORKDAY"  # Substitua pelo nome desejado da regra do EventBridge
+  description = "Regra para acionar a Lambda às 6:30 da manhã (UTC-3) de segunda a sexta-feira"
 
-  # Defina as configurações adicionais da função do Lambda aqui
+  # Defina a expressão cron para executar a regra às 8 da manhã de segunda a sexta-feira (UTC time)
+  schedule_expression = "cron(30 9 ? * MON-FRI *)"
+  
 
-  # Use o Layer personalizado no Lambda
-  layers = [aws_lambda_layer_version.my_lambda_layer.arn]
 }
 
-# Crie a permissão para a função do Lambda usar o Layer personalizado
-resource "aws_lambda_permission" "layer_permission" {
-  statement_id  = "AllowLayer"
-  action        = "lambda:GetLayerVersion"
-  function_name = aws_lambda_function.my_lambda_function.function_name
-  principal     = "lambda.amazonaws.com"
+resource "aws_cloudwatch_event_target" "my_target" {
+  rule      = aws_cloudwatch_event_rule.lambda_event_rule.name
+  arn       = aws_lambda_function.updated_lambda.arn  # Use o ARN correto da sua função Lambda
+  target_id = "my-target-id"
+  input     = var.target_input
+}
+
+# Crie a permissão para o EventBridge enviar eventos à função Lambda
+resource "aws_lambda_permission" "eventbridge_lambda_permission" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.updated_lambda.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.lambda_event_rule.arn
 }

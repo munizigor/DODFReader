@@ -1,0 +1,203 @@
+{
+    "prod": {
+        "CBMDF": {
+            "name": "CORPO DE BOMBEIROS MILITAR DO DISTRITO FEDERAL",
+            "tags": [
+                "CBMDF",
+                "QOBM",
+                "QBMG",
+                "BOMBEIRO",
+                "BOMBEIRA",
+                "00053-",
+                "MONICA DE MESQUITA MIRANDA"
+            ],
+            "chats": ["-1001865149088", "-1001707100556"],
+            "files": ["pdf"]
+        },
+        "CBMDF-CEINT": {
+            "name": "CEINT / CBMDF",
+            "tags": [
+                "CBMDF",
+                "QOBM",
+                "QBMG",
+                "COMBATENTE",
+                "INCENDIO",
+                "SEGURANCA PUBLICA",
+                "INTELIGENCIA",
+                "AMEACA",
+                "IBRES",
+                "INSTITUTO BOMBEIROS",
+                "BOMBEIRO",
+                "BOMBEIRA",
+                "SAMU",
+                "BENS APREENDIDOS",
+                "BRIGADISTA",
+                "IBRAM",
+                "00053-",
+                "MONICA DE MESQUITA MIRANDA"
+            ],
+            "chats": ["-1001707100556"],
+            "files": ["pdf"]
+        },
+        "DEFESA CIVIL": {
+            "name": "SUBSECRETARIA DE DEFESA CIVIL",
+            "tags": ["DEFESA CIVIL", "SANDRO GOMES SANTOS DA SILVA"],
+            "chats": ["-1001707100556", "-1001652014490"],
+            "files": ["pdf"]
+        },
+        "PMDF": {
+            "name": "POLÍCIA MILITAR DO DISTRITO FEDERAL",
+            "tags": [
+                "PMDF",
+                "QOPM",
+                "QPPMC",
+                "POLICIAL MILITAR",
+                "POLICIA MILITAR"
+            ],
+            "chats": ["-1001952200996", "-1001679977765", "-1001707100556"],
+            "files": ["pdf"]
+        },
+        "PCDF": {
+            "name": "POLÍCIA CIVIL DO DISTRITO FEDERAL",
+            "tags": [
+                "PCDF",
+                "POLICIA CIVIL",
+                "POLICIAL CIVIL",
+                "PAPILOSCOPISTA",
+                "DELEGADO DE POLICIA",
+                "DELEGADA DE POLICIA",
+                "AGENTE DE POLICIA",
+                "ESCRIVA DE POLICIA",
+                "ESCRIVAO DE POLICIA",
+                "PERITA CRIMINAL",
+                "PERITO CRIMINAL",
+                "LEGISTA",
+                "AGENTE POLICIAL",
+                "SINDEPO",
+                "SINPOL"
+            ],
+            "chats": ["-1001568458863", "-1001707100556"],
+            "files": ["pdf"]
+        },
+        "SSP-DF": {
+            "name": "SECRETARIA DE SEGURANÇA PÚBLICA",
+            "tags": [
+                "SOPI",
+                "OPERACOES INTEGRADAS",
+                "SEGURANCA PUBLICA",
+                "SSP ",
+                "SSP-",
+                "SSP/",
+                "00050-",
+                "SANDRO AVELAR",
+                "SANDRO TORRES AVELAR",
+                "ALEXANDRE RABELO PATURY",
+                "BILMAR ANGELIS DE ALMEIDA FERREIRA",
+                "CINTIA QUEIROZ DE CASTRO"
+            ],
+            "chats": ["-1001679977765", "-1001707100556"],
+            "files": ["pdf"]
+        }
+    },
+
+    "dev": {
+        "CBMDF": {
+            "name": "CORPO DE BOMBEIROS MILITAR DO DISTRITO FEDERAL",
+            "tags": [
+                "CBMDF",
+                "QOBM",
+                "QBMG",
+                "BOMBEIRO",
+                "BOMBEIRA",
+                "00053-",
+                "MONICA DE MESQUITA MIRANDA"
+            ],
+            "chats": ["-930695738"],
+            "files": ["pdf"]
+        },
+        "CBMDF-CEINT": {
+            "name": "CEINT / CBMDF",
+            "tags": [
+                "CBMDF",
+                "QOBM",
+                "QBMG",
+                "COMBATENTE",
+                "INCENDIO",
+                "SEGURANCA PUBLICA",
+                "INTELIGENCIA",
+                "AMEACA",
+                "IBRES",
+                "INSTITUTO BOMBEIROS",
+                "BOMBEIRO",
+                "BOMBEIRA",
+                "SAMU",
+                "BENS APREENDIDOS",
+                "BRIGADISTA",
+                "IBRAM",
+                "00053-",
+                "MONICA DE MESQUITA MIRANDA"
+            ],
+            "chats": ["-930695738"],
+            "files": ["pdf"]
+        },
+        "DEFESA CIVIL": {
+            "name": "SUBSECRETARIA DE DEFESA CIVIL",
+            "tags": ["DEFESA CIVIL", "SANDRO GOMES SANTOS DA SILVA"],
+            "chats": ["-930695738"],
+            "files": ["pdf"]
+        },
+        "PMDF": {
+            "name": "POLÍCIA MILITAR DO DISTRITO FEDERAL",
+            "tags": [
+                "PMDF",
+                "QOPM",
+                "QPPMC",
+                "POLICIAL MILITAR",
+                "POLICIA MILITAR"
+            ],
+            "chats": ["-930695738"],
+            "files": ["pdf"]
+        },
+        "PCDF": {
+            "name": "POLÍCIA CIVIL DO DISTRITO FEDERAL",
+            "tags": [
+                "PCDF",
+                "POLICIA CIVIL",
+                "POLICIAL CIVIL",
+                "PAPILOSCOPISTA",
+                "DELEGADO DE POLICIA",
+                "DELEGADA DE POLICIA",
+                "AGENTE DE POLICIA",
+                "ESCRIVA DE POLICIA",
+                "ESCRIVAO DE POLICIA",
+                "PERITA CRIMINAL",
+                "PERITO CRIMINAL",
+                "LEGISTA",
+                "AGENTE POLICIAL",
+                "SINDEPO",
+                "SINPOL"
+            ],
+            "chats": ["-930695738"],
+            "files": ["pdf"]
+        },
+        "SSP-DF": {
+            "name": "SECRETARIA DE SEGURANÇA PÚBLICA",
+            "tags": [
+                "SOPI",
+                "OPERACOES INTEGRADAS",
+                "SEGURANCA PUBLICA",
+                "SSP ",
+                "SSP-",
+                "SSP/",
+                "00050-",
+                "SANDRO AVELAR",
+                "SANDRO TORRES AVELAR",
+                "ALEXANDRE RABELO PATURY",
+                "BILMAR ANGELIS DE ALMEIDA FERREIRA",
+                "CINTIA QUEIROZ DE CASTRO"
+            ],
+            "chats": ["-930695738"],
+            "files": ["pdf"]
+        }
+    }
+}
